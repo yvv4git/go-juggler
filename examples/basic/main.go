@@ -40,23 +40,21 @@ func main() {
 	// 2. Open a tab
 	var tabID string
 	{
-		payload := map[string]any{
+		tabID = mustGetString(client, *addr+"/tabs/open", map[string]any{
 			"userId":     userID,
 			"sessionKey": "demo",
 			"url":        "https://example.com",
-		}
-		tabID = postJSON(client, *addr+"/tabs/open", payload)
+		})
 		fmt.Printf("tab opened: %s\n", tabID)
 	}
 
 	// 3. Navigate to another page
 	{
-		payload := map[string]any{
+		mustPost(client, *addr+"/tabs/"+tabID+"/navigate", map[string]any{
 			"userId": userID,
-			"url":    "https://httpbin.org/html",
-		}
-		postJSON(client, *addr+"/tabs/"+tabID+"/navigate", payload)
-		fmt.Println("navigated to httpbin.org/html")
+			"url":    "https://rutube.ru",
+		})
+		fmt.Println("navigated to rutube.ru")
 	}
 
 	// 4. Get snapshot
@@ -78,8 +76,7 @@ func main() {
 
 	// 5. Close the tab
 	{
-		payload := map[string]any{"userId": userID}
-		data, _ := json.Marshal(payload)
+		data, _ := json.Marshal(map[string]any{"userId": userID})
 		req, _ := http.NewRequest("DELETE", *addr+"/tabs/"+tabID, bytes.NewReader(data))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := client.Do(req)
@@ -102,7 +99,8 @@ func main() {
 	}
 }
 
-func postJSON(client *http.Client, url string, payload map[string]any) string {
+// mustPost sends a POST and returns the raw body. Fatal on error.
+func mustPost(client *http.Client, url string, payload map[string]any) map[string]any {
 	data, err := json.Marshal(payload)
 	if err != nil {
 		log.Fatalf("marshal: %v", err)
@@ -118,12 +116,18 @@ func postJSON(client *http.Client, url string, payload map[string]any) string {
 	}
 	var result map[string]any
 	json.Unmarshal(body, &result)
+	return result
+}
+
+// mustGetString sends a POST and extracts "tabId" or "targetId" from the response.
+func mustGetString(client *http.Client, url string, payload map[string]any) string {
+	result := mustPost(client, url, payload)
 	if id, ok := result["tabId"].(string); ok {
 		return id
 	}
 	if id, ok := result["targetId"].(string); ok {
 		return id
 	}
-	log.Fatalf("no tabId in response: %s", body)
+	log.Fatalf("no tabId in response: %v", result)
 	return ""
 }
