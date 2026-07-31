@@ -27,7 +27,7 @@ func main() {
 	}
 	fmt.Println("engine:", health.Engine, "browser:", health.BrowserConnected)
 
-	tab, err := client.OpenTab(context.Background(), session, "https://httpbin.org/html")
+	tab, err := client.OpenTab(context.Background(), session, "http://example.com")
 	if err != nil {
 		log.Fatalf("open tab: %v", err)
 	}
@@ -35,7 +35,7 @@ func main() {
 	defer client.CloseTab(context.Background(), tab.TabID, session)
 
 	res, err := client.Evaluate(context.Background(), tab.TabID, session,
-		`console.log("Hi, friends!"); "done"`)
+		`document.title = "Hi, friends!"; document.title`)
 	if err != nil {
 		log.Fatalf("evaluate: %v\nHint: camofox-browser must be >= 1.4.0", err)
 	}
