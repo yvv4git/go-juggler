@@ -215,6 +215,62 @@ type TabStats struct {
 	RefsCount   int      `json:"refsCount"`
 }
 
+// ResourceEntry describes one network request captured via the Performance API.
+type ResourceEntry struct {
+	Name   string `json:"name"`
+	Type   string `json:"type"`
+	Size   int    `json:"size,omitempty"`
+	Status int    `json:"status,omitempty"`
+}
+
+// NetworkRequests returns all resource requests loaded by the page
+// (main document + subresources) in chronological order.
+func (c *Client) NetworkRequests(ctx context.Context, tabID, sessionKey string) ([]ResourceEntry, error) {
+	expr := `JSON.stringify([
+		...performance.getEntriesByType("navigation").map(e => ({name:e.name, type:"navigation", size:e.transferSize||0})),
+		...performance.getEntriesByType("resource").map(e => ({name:e.name, type:e.initiatorType, size:e.transferSize||0}))
+	])`
+	res, err := c.Evaluate(ctx, tabID, sessionKey, expr)
+	if err != nil {
+		return nil, err
+	}
+	raw, ok := res.Result.(string)
+	if !ok {
+		return nil, fmt.Errorf("unexpected result type: %T", res.Result)
+	}
+	var entries []ResourceEntry
+	if err := json.Unmarshal([]byte(raw), &entries); err != nil {
+		return nil, fmt.Errorf("unmarshal entries: %w", err)
+	}
+	return entries, nil
+}
+
+// PollNetworkRequests reads resource entries repeatedly for the given duration
+// and merges them with deduplication (first occurrence wins).
+func (c *Client) PollNetworkRequests(ctx context.Context, tabID, sessionKey string, duration, interval time.Duration) ([]ResourceEntry, error) {
+	deadline := time.Now().Add(duration)
+	seen := map[string]bool{}
+	var result []ResourceEntry
+
+	for {
+		entries, err := c.NetworkRequests(ctx, tabID, sessionKey)
+		if err != nil {
+			return nil, err
+		}
+		for _, e := range entries {
+			if !seen[e.Name] {
+				seen[e.Name] = true
+				result = append(result, e)
+			}
+		}
+		if time.Now().After(deadline) {
+			break
+		}
+		time.Sleep(interval)
+	}
+	return result, nil
+}
+
 // Stats returns the tab stats.
 type EvaluateResponse struct {
 	OK     bool        `json:"ok"`
