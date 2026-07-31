@@ -110,7 +110,136 @@ func (c *Client) CloseSession(ctx context.Context, sessionKey string) error {
 	return c.delete(ctx, "/sessions/"+sessionKey, nil)
 }
 
+// --- Tab actions ---
+
+// Click clicks an element identified by ref (e.g. "e1") or CSS selector.
+func (c *Client) Click(ctx context.Context, tabID, sessionKey, ref, selector string) error {
+	return c.tabAction(ctx, tabID, sessionKey, "click", map[string]any{
+		"ref":      ref,
+		"selector": selector,
+	})
+}
+
+// Type fills an input field identified by ref or selector with text.
+func (c *Client) Type(ctx context.Context, tabID, sessionKey, ref, selector, text string) error {
+	return c.tabAction(ctx, tabID, sessionKey, "type", map[string]any{
+		"ref":      ref,
+		"selector": selector,
+		"text":     text,
+	})
+}
+
+// Press presses a keyboard key (e.g. "Enter", "Tab", "Escape").
+func (c *Client) Press(ctx context.Context, tabID, sessionKey, key string) error {
+	return c.tabAction(ctx, tabID, sessionKey, "press", map[string]any{
+		"key": key,
+	})
+}
+
+// Scroll scrolls the page. direction is "up" or "down", amount is pixels.
+func (c *Client) Scroll(ctx context.Context, tabID, sessionKey, direction string, amount int) error {
+	return c.tabAction(ctx, tabID, sessionKey, "scroll", map[string]any{
+		"direction": direction,
+		"amount":    amount,
+	})
+}
+
+// Back navigates back in history.
+func (c *Client) Back(ctx context.Context, tabID, sessionKey string) error {
+	return c.tabPOST(ctx, "/tabs/"+tabID+"/back", map[string]any{"userId": sessionKey}, nil)
+}
+
+// Forward navigates forward in history.
+func (c *Client) Forward(ctx context.Context, tabID, sessionKey string) error {
+	return c.tabPOST(ctx, "/tabs/"+tabID+"/forward", map[string]any{"userId": sessionKey}, nil)
+}
+
+// Refresh reloads the current page.
+func (c *Client) Refresh(ctx context.Context, tabID, sessionKey string) error {
+	return c.tabPOST(ctx, "/tabs/"+tabID+"/refresh", map[string]any{"userId": sessionKey}, nil)
+}
+
+// LinksResponse lists all links on the page.
+type LinksResponse struct {
+	Links      []LinkEntry `json:"links"`
+	Pagination struct {
+		Total   int  `json:"total"`
+		Offset  int  `json:"offset"`
+		Limit   int  `json:"limit"`
+		HasMore bool `json:"hasMore"`
+	} `json:"pagination"`
+}
+
+// LinkEntry is a single link on the page.
+type LinkEntry struct {
+	URL  string `json:"url"`
+	Text string `json:"text"`
+}
+
+// Links returns all links on the page.
+func (c *Client) Links(ctx context.Context, tabID, sessionKey string, limit, offset int) (*LinksResponse, error) {
+	var r LinksResponse
+	path := fmt.Sprintf("/tabs/%s/links?userId=%s&limit=%d&offset=%d", tabID, sessionKey, limit, offset)
+	if err := c.get(ctx, path, &r); err != nil {
+		return nil, err
+	}
+	return &r, nil
+}
+
+// Screenshot returns the raw PNG bytes of the page screenshot.
+func (c *Client) Screenshot(ctx context.Context, tabID, sessionKey string, fullPage bool) ([]byte, error) {
+	path := fmt.Sprintf("/tabs/%s/screenshot?userId=%s&fullPage=%v", tabID, sessionKey, fullPage)
+	req, err := http.NewRequestWithContext(ctx, "GET", c.baseURL+path, nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := c.hc.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 400 {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("%s: %d %s", path, resp.StatusCode, body)
+	}
+	return io.ReadAll(resp.Body)
+}
+
+// TabStats describes tab state.
+type TabStats struct {
+	TabID       string   `json:"tabId"`
+	URL         string   `json:"url"`
+	VisitedURLs []string `json:"visitedUrls"`
+	ToolCalls   int      `json:"toolCalls"`
+	RefsCount   int      `json:"refsCount"`
+}
+
+// Stats returns the tab stats.
+func (c *Client) Stats(ctx context.Context, tabID, sessionKey string) (*TabStats, error) {
+	var r TabStats
+	if err := c.get(ctx, fmt.Sprintf("/tabs/%s/stats?userId=%s", tabID, sessionKey), &r); err != nil {
+		return nil, err
+	}
+	return &r, nil
+}
+
 // --- internal helpers ---
+
+func (c *Client) tabAction(ctx context.Context, tabID, sessionKey, kind string, params map[string]any) error {
+	payload := map[string]any{
+		"kind":    kind,
+		"userId":  sessionKey,
+		"targetId": tabID,
+	}
+	for k, v := range params {
+		payload[k] = v
+	}
+	return c.post(ctx, "/act", payload, nil)
+}
+
+func (c *Client) tabPOST(ctx context.Context, path string, payload any, out any) error {
+	return c.post(ctx, path, payload, out)
+}
 
 func (c *Client) get(ctx context.Context, path string, out any) error {
 	req, err := http.NewRequestWithContext(ctx, "GET", c.baseURL+path, nil)
