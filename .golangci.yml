@@ -1,0 +1,91 @@
+version: "2"
+
+run:
+  timeout: 5m
+  issues-exit-code: 1
+
+linters:
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - revive
+    - wsl_v5
+
+formatters:
+  enable:
+    - gofumpt
+
+linters-settings:
+  wsl_v5:
+    # Force blank line before return statements
+    force-err-cuddling: false
+    force-case-cuddling: false
+    force-if-cuddling: false
+    allow-cuddle-declarations: false
+    allow-cuddle-with-calls: false
+    allow-separated-leading-comment: false
+    # These control blank lines
+    force-trailing-comma: true
+    # For blank line before return:
+    allow-empty-lines: true
+
+  revive:
+    rules:
+      - name: blank-imports
+      - name: context-as-argument
+      - name: context-keys-type
+      - name: dot-imports
+      - name: error-return
+      - name: error-strings
+      - name: error-naming
+      - name: exported
+      - name: if-return
+      - name: increment-decrement
+      - name: var-naming
+      - name: var-declaration
+      - name: package-comments
+      - name: range
+      - name: receiver-naming
+      - name: time-naming
+      - name: unexported-return
+      - name: indent-error-flow
+      - name: errorf
+      - name: empty-block
+      - name: superfluous-else
+      - name: unreachable-code
+      - name: redefines-builtin-id
+      - name: range-val-in-closure
+      - name: waitgroup-by-value
+      - name: atomic
+      - name: bool-literal-in-expr
+      - name: unused-receiver
+      - name: add-constant
+      - name: constant-logical-expr
+      - name: modifying-parameter
+      - name: confusing-naming
+      - name: get-return
+      - name: identify-creation
+      - name: identify-name
+      - name: identifier-length
+      - name: method-return
+      - name: cyclic-import
+      - name: file-header
+      - name: import-shadowing
+      - name: range-val-address
+
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+
+  staticcheck:
+    checks: ["all", "-ST1000", "-ST1003"]
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - revive
+        - wsl_v5
