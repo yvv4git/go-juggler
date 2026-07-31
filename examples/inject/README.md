@@ -4,7 +4,7 @@ Demonstrates injecting JavaScript into a page via `POST /tabs/:tabId/evaluate`.
 
 The script sets `document.title` and reads it back — a verifiable side effect.
 
-**Requires camofox-browser >= 1.4.0**
+Requires camofox-browser >= 1.4.0
 
 ```bash
 go run .
@@ -12,7 +12,7 @@ go run .
 
 Expected output:
 
-```
+```text
 engine: camoufox browser: true
 tab: <id> http://example.com/
 result: Hi, friends!
