@@ -14,6 +14,7 @@ func main() {
 	if addr == "" {
 		addr = "http://localhost:9377"
 	}
+
 	session := os.Getenv("CAMOFOX_SESSION")
 	if session == "" {
 		session = "demo"
@@ -25,19 +26,22 @@ func main() {
 	if err != nil {
 		log.Fatalf("health: %v", err)
 	}
+
 	fmt.Println("engine:", health.Engine, "browser:", health.BrowserConnected)
 
 	tab, err := client.OpenTab(context.Background(), session, "http://example.com")
 	if err != nil {
 		log.Fatalf("open tab: %v", err)
 	}
+
 	fmt.Println("tab:", tab.TabID, tab.URL)
-	defer client.CloseTab(context.Background(), tab.TabID, session)
+	defer func() { _ = client.CloseTab(context.Background(), tab.TabID, session) }()
 
 	res, err := client.Evaluate(context.Background(), tab.TabID, session,
 		`document.title = "Hi, friends!"; document.title`)
 	if err != nil {
 		log.Fatalf("evaluate: %v\nHint: camofox-browser must be >= 1.4.0", err)
 	}
+
 	fmt.Println("result:", res.Result)
 }

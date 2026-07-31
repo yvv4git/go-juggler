@@ -54,23 +54,27 @@ func NewPipe(r, w *os.File) *PipeTransport {
 func NewPipeFromFds() *PipeTransport {
 	r := os.NewFile(ReadFD, "juggler-read")
 	w := os.NewFile(WriteFD, "juggler-write")
+
 	return NewPipe(r, w)
 }
 
 // Send writes a single newline-terminated JSON frame to the browser.
-func (t *PipeTransport) Send(ctx context.Context, data []byte) error {
+func (t *PipeTransport) Send(_ context.Context, data []byte) error {
 	t.wMu.Lock()
 	defer t.wMu.Unlock()
 
 	if t.closed {
 		return ErrClosed
 	}
+
 	if _, err := t.w.Write(data); err != nil {
 		return err
 	}
+
 	if err := t.w.WriteByte('\n'); err != nil {
 		return err
 	}
+
 	return t.w.Flush()
 }
 
@@ -92,8 +96,10 @@ func (t *PipeTransport) Receive(ctx context.Context) ([]byte, error) {
 		if errors.Is(err, os.ErrDeadlineExceeded) {
 			return nil, ctx.Err()
 		}
+
 		return nil, err
 	}
+
 	return trimNewline(line), nil
 }
 
@@ -107,15 +113,18 @@ func (t *PipeTransport) Close() error {
 	if t.closed {
 		return nil
 	}
+
 	t.closed = true
 
 	var errs []error
 	if err := t.rFile.Close(); err != nil {
 		errs = append(errs, err)
 	}
+
 	if err := t.wFile.Close(); err != nil {
 		errs = append(errs, err)
 	}
+
 	return errors.Join(errs...)
 }
 
@@ -123,8 +132,10 @@ func trimNewline(line []byte) []byte {
 	if n := len(line); n > 0 && line[n-1] == '\n' {
 		line = line[:n-1]
 	}
+
 	if n := len(line); n > 0 && line[n-1] == '\r' {
 		line = line[:n-1]
 	}
+
 	return line
 }

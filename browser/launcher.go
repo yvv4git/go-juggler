@@ -45,8 +45,10 @@ func Launch(ctx context.Context, opts ...Option) (*Browser, error) {
 	for _, o := range opts {
 		o(&cfg)
 	}
+
 	if cfg.execPath == "" {
 		return nil, errors.New("browser: exec path is required (WithExecPath)")
 	}
+
 	return nil, errors.New("browser: launching is not implemented yet")
 }

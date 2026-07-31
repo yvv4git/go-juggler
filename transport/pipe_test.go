@@ -12,6 +12,7 @@ func TestPipeRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	clientR, peerW, err := os.Pipe()
 	if err != nil {
 		t.Fatal(err)
@@ -19,6 +20,7 @@ func TestPipeRoundTrip(t *testing.T) {
 
 	client := NewPipe(clientR, clientW)
 	peer := NewPipe(peerR, peerW)
+
 	t.Cleanup(func() { _ = client.Close() })
 
 	ctx := context.Background()
@@ -27,10 +29,12 @@ func TestPipeRoundTrip(t *testing.T) {
 	if err := client.Send(ctx, []byte(frame)); err != nil {
 		t.Fatalf("send: %v", err)
 	}
+
 	got, err := peer.Receive(ctx)
 	if err != nil {
 		t.Fatalf("receive: %v", err)
 	}
+
 	if string(got) != frame {
 		t.Fatalf("got %q, want %q", got, frame)
 	}
@@ -39,10 +43,12 @@ func TestPipeRoundTrip(t *testing.T) {
 	if err := peer.Send(ctx, []byte(reply)); err != nil {
 		t.Fatalf("send reply: %v", err)
 	}
+
 	got, err = client.Receive(ctx)
 	if err != nil {
 		t.Fatalf("receive reply: %v", err)
 	}
+
 	if string(got) != reply {
 		t.Fatalf("got %q, want %q", got, reply)
 	}
@@ -55,6 +61,7 @@ func TestPipeReceiveContextCancel(t *testing.T) {
 	}
 
 	client := NewPipe(r, w)
+
 	t.Cleanup(func() { _ = client.Close() })
 
 	ctx, cancel := context.WithCancel(context.Background())

@@ -23,7 +23,7 @@ type Browser struct {
 }
 
 // Connect wraps an established transport with a high-level Browser handle.
-func Connect(ctx context.Context, tr transport.Transport) (*Browser, error) {
+func Connect(_ context.Context, tr transport.Transport) (*Browser, error) {
 	if tr == nil {
 		return nil, errors.New("browser: nil transport")
 	}
@@ -38,16 +38,19 @@ func (b *Browser) Close(ctx context.Context) error {
 	defer b.mu.Unlock()
 
 	var errs []error
+
 	for _, tab := range b.tabs {
 		if err := tab.close(ctx); err != nil {
 			errs = append(errs, err)
 		}
 	}
+
 	b.tabs = nil
 
 	if err := b.tr.Close(); err != nil {
 		errs = append(errs, err)
 	}
+
 	return errors.Join(errs...)
 }
 
@@ -55,5 +58,6 @@ func (b *Browser) Close(ctx context.Context) error {
 func (b *Browser) Tabs() []*Tab {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+
 	return append([]*Tab(nil), b.tabs...)
 }

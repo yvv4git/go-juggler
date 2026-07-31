@@ -18,7 +18,7 @@ type Client struct {
 	hc      *http.Client
 }
 
-// Option configures a Client.
+// ClientOption configures a Client.
 type ClientOption func(*Client)
 
 // WithHTTPClient sets a custom http.Client.
@@ -60,6 +60,7 @@ func NewClient(addr string, opts ...ClientOption) *Client {
 	for _, o := range opts {
 		o(c)
 	}
+
 	return c
 }
 
@@ -69,6 +70,7 @@ func (c *Client) Health(ctx context.Context) (*HealthResponse, error) {
 	if err := c.get(ctx, "/health", &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -82,6 +84,7 @@ func (c *Client) OpenTab(ctx context.Context, sessionKey, url string) (*TabRespo
 	}, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -99,6 +102,7 @@ func (c *Client) Snapshot(ctx context.Context, tabID, sessionKey string) (*Snaps
 	if err := c.get(ctx, fmt.Sprintf("/tabs/%s/snapshot?userId=%s", tabID, sessionKey), &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -181,29 +185,36 @@ type LinkEntry struct {
 // Links returns all links on the page.
 func (c *Client) Links(ctx context.Context, tabID, sessionKey string, limit, offset int) (*LinksResponse, error) {
 	var r LinksResponse
+
 	path := fmt.Sprintf("/tabs/%s/links?userId=%s&limit=%d&offset=%d", tabID, sessionKey, limit, offset)
 	if err := c.get(ctx, path, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
 // Screenshot returns the raw PNG bytes of the page screenshot.
 func (c *Client) Screenshot(ctx context.Context, tabID, sessionKey string, fullPage bool) ([]byte, error) {
 	path := fmt.Sprintf("/tabs/%s/screenshot?userId=%s&fullPage=%v", tabID, sessionKey, fullPage)
+
 	req, err := http.NewRequestWithContext(ctx, "GET", c.baseURL+path, nil)
 	if err != nil {
 		return nil, err
 	}
+
 	resp, err := c.hc.Do(req)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
+
 	if resp.StatusCode >= 400 {
 		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("%s: %d %s", path, resp.StatusCode, body)
 	}
+
 	return io.ReadAll(resp.Body)
 }
 
@@ -231,18 +242,22 @@ func (c *Client) NetworkRequests(ctx context.Context, tabID, sessionKey string) 
 		...performance.getEntriesByType("navigation").map(e => ({name:e.name, type:"navigation", size:e.transferSize||0})),
 		...performance.getEntriesByType("resource").map(e => ({name:e.name, type:e.initiatorType, size:e.transferSize||0}))
 	])`
+
 	res, err := c.Evaluate(ctx, tabID, sessionKey, expr)
 	if err != nil {
 		return nil, err
 	}
+
 	raw, ok := res.Result.(string)
 	if !ok {
 		return nil, fmt.Errorf("unexpected result type: %T", res.Result)
 	}
+
 	var entries []ResourceEntry
 	if err := json.Unmarshal([]byte(raw), &entries); err != nil {
 		return nil, fmt.Errorf("unmarshal entries: %w", err)
 	}
+
 	return entries, nil
 }
 
@@ -251,6 +266,7 @@ func (c *Client) NetworkRequests(ctx context.Context, tabID, sessionKey string) 
 func (c *Client) PollNetworkRequests(ctx context.Context, tabID, sessionKey string, duration, interval time.Duration) ([]ResourceEntry, error) {
 	deadline := time.Now().Add(duration)
 	seen := map[string]bool{}
+
 	var result []ResourceEntry
 
 	for {
@@ -258,56 +274,70 @@ func (c *Client) PollNetworkRequests(ctx context.Context, tabID, sessionKey stri
 		if err != nil {
 			return nil, err
 		}
+
 		for _, e := range entries {
 			if !seen[e.Name] {
 				seen[e.Name] = true
 				result = append(result, e)
 			}
 		}
+
 		if time.Now().After(deadline) {
 			break
 		}
+
 		time.Sleep(interval)
 	}
+
 	return result, nil
 }
 
-// Stats returns the tab stats.
+// EvaluateResponse is the result of a JavaScript evaluation.
 type EvaluateResponse struct {
 	OK     bool        `json:"ok"`
 	Result interface{} `json:"result"`
 }
 
+// Evaluate runs an arbitrary JavaScript expression in the page.
 func (c *Client) Evaluate(ctx context.Context, tabID, sessionKey, expression string) (*EvaluateResponse, error) {
 	body := map[string]string{
 		"userId":     sessionKey,
 		"expression": expression,
 	}
+
 	data, err := json.Marshal(body)
 	if err != nil {
 		return nil, fmt.Errorf("marshal: %w", err)
 	}
+
 	req, err := http.NewRequestWithContext(ctx, "POST", c.baseURL+"/tabs/"+tabID+"/evaluate", bytes.NewReader(data))
 	if err != nil {
 		return nil, fmt.Errorf("new request: %w", err)
 	}
+
 	req.Header.Set("Content-Type", "application/json")
+
 	resp, err := c.hc.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("do: %w", err)
 	}
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
+
 	raw, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode == 404 {
 		return nil, fmt.Errorf("evaluate endpoint not found — camofox-browser must be >= 1.4.0 (got %s, status 404)", resp.Status)
 	}
+
 	if resp.StatusCode >= 400 {
 		return nil, fmt.Errorf("status %d: %s", resp.StatusCode, string(raw))
 	}
+
 	var out EvaluateResponse
 	if err := json.Unmarshal(raw, &out); err != nil {
 		return nil, fmt.Errorf("decode: %w (body: %s)", err, string(raw))
 	}
+
 	return &out, nil
 }
 
@@ -332,14 +362,17 @@ func (c *Client) ListTabs(ctx context.Context, sessionKey string) (*ListTabsResp
 	if err := c.get(ctx, "/tabs?userId="+url.QueryEscape(sessionKey), &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
+// Stats returns the tab stats (URL, visited URLs, refs).
 func (c *Client) Stats(ctx context.Context, tabID, sessionKey string) (*TabStats, error) {
 	var r TabStats
 	if err := c.get(ctx, fmt.Sprintf("/tabs/%s/stats?userId=%s", tabID, sessionKey), &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -352,6 +385,7 @@ func (c *Client) tabAction(ctx context.Context, tabID, sessionKey, kind string, 
 		"targetId": tabID,
 	}
 	maps.Copy(payload, params)
+
 	return c.post(ctx, "/act", payload, nil)
 }
 
@@ -364,6 +398,7 @@ func (c *Client) get(ctx context.Context, path string, out any) error {
 	if err != nil {
 		return err
 	}
+
 	return c.do(req, out)
 }
 
@@ -372,30 +407,38 @@ func (c *Client) post(ctx context.Context, path string, payload any, out any) er
 	if err != nil {
 		return err
 	}
+
 	req, err := http.NewRequestWithContext(ctx, "POST", c.baseURL+path, bytes.NewReader(data))
 	if err != nil {
 		return err
 	}
+
 	req.Header.Set("Content-Type", "application/json")
+
 	return c.do(req, out)
 }
 
 func (c *Client) delete(ctx context.Context, path string, payload any) error {
 	var body io.Reader
+
 	if payload != nil {
 		data, err := json.Marshal(payload)
 		if err != nil {
 			return err
 		}
+
 		body = bytes.NewReader(data)
 	}
+
 	req, err := http.NewRequestWithContext(ctx, "DELETE", c.baseURL+path, body)
 	if err != nil {
 		return err
 	}
+
 	if payload != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
+
 	return c.do(req, nil)
 }
 
@@ -404,7 +447,7 @@ func (c *Client) do(req *http.Request, out any) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode >= 400 {
 		body, _ := io.ReadAll(resp.Body)
@@ -414,5 +457,6 @@ func (c *Client) do(req *http.Request, out any) error {
 	if out != nil {
 		return json.NewDecoder(resp.Body).Decode(out)
 	}
+
 	return nil
 }

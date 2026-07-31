@@ -24,6 +24,7 @@ func main() {
 	url := flag.String("url", "http://www.wikipedia.org", "page to load")
 	session := flag.String("session", "html-demo", "session key")
 	wait := flag.Duration("wait", 10*time.Second, "wait for dynamic content")
+
 	flag.Parse()
 
 	if flag.NArg() > 0 {
@@ -37,7 +38,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("OpenTab: %v", err)
 	}
-	defer c.CloseTab(ctx, tab.TabID, *session)
+	defer func() { _ = c.CloseTab(ctx, tab.TabID, *session) }()
 
 	// Phase 1: get HTML immediately (without waiting for dynamic content)
 	early, err := c.Evaluate(ctx, tab.TabID, *session,
@@ -45,16 +46,19 @@ func main() {
 	if err != nil {
 		log.Fatalf("early evaluate: %v", err)
 	}
+
 	earlyHTML, _ := early.Result.(string)
 	fmt.Printf("early HTML: %d bytes\n", len(earlyHTML))
 
 	// Phase 2: wait for dynamic content, then re-fetch
 	time.Sleep(*wait)
+
 	late, err := c.Evaluate(ctx, tab.TabID, *session,
 		`document.documentElement.outerHTML`)
 	if err != nil {
 		log.Fatalf("late evaluate: %v", err)
 	}
+
 	lateHTML, _ := late.Result.(string)
 	fmt.Printf("late  HTML: %d bytes\n", len(lateHTML))
 

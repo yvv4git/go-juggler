@@ -21,6 +21,7 @@ func main() {
 	addr := flag.String("addr", "http://localhost:9377", "camofox-browser endpoint")
 	session := flag.String("session", "tabs-demo", "session key")
 	count := flag.Int("count", 3, "number of tabs to open")
+
 	flag.Parse()
 
 	ctx := context.Background()
@@ -36,10 +37,12 @@ func main() {
 
 	for i := 0; i < *count; i++ {
 		u := urls[i%len(urls)]
+
 		tab, err := c.OpenTab(ctx, *session, u)
 		if err != nil {
 			log.Fatalf("OpenTab %d: %v", i+1, err)
 		}
+
 		fmt.Printf("opened %d: %s\n", i+1, tab.URL)
 	}
 
@@ -49,12 +52,15 @@ func main() {
 	if err != nil {
 		log.Fatalf("ListTabs: %v", err)
 	}
+
 	fmt.Printf("\ntotal tabs: %d\n\n", len(r.Tabs))
+
 	for i, t := range r.Tabs {
 		fmt.Printf("  %d. [%s] %s\n", i+1, t.Title, t.URL)
 	}
 
 	fmt.Println()
+
 	for _, t := range r.Tabs {
 		if err := c.CloseTab(ctx, t.TabID, *session); err != nil {
 			fmt.Printf("close %s: %v\n", t.TabID[:8], err)
@@ -63,6 +69,7 @@ func main() {
 		}
 	}
 
-	c.CloseSession(ctx, *session)
+	_ = c.CloseSession(ctx, *session)
+
 	fmt.Println("\nsession closed")
 }

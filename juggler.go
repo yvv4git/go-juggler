@@ -20,7 +20,8 @@ import (
 	"github.com/yvv4git/go-juggler/transport"
 )
 
-// Browser, Tab, Client and related types are re-exported for convenient
+// Browser is the re-exported browser.Browser type.
+// Tab, Client and related types are also re-exported for convenient
 // single-package imports.
 type (
 	Browser = browser.Browser
@@ -28,13 +29,13 @@ type (
 	Option  = browser.Option
 	Client  = browser.Client
 
-	HealthResponse    = browser.HealthResponse
-	TabResponse       = browser.TabResponse
-	SnapshotResponse  = browser.SnapshotResponse
-	EvaluateResponse  = browser.EvaluateResponse
-	ResourceEntry     = browser.ResourceEntry
-	TabInfo           = browser.TabInfo
-	ListTabsResponse  = browser.ListTabsResponse
+	HealthResponse   = browser.HealthResponse
+	TabResponse      = browser.TabResponse
+	SnapshotResponse = browser.SnapshotResponse
+	EvaluateResponse = browser.EvaluateResponse
+	ResourceEntry    = browser.ResourceEntry
+	TabInfo          = browser.TabInfo
+	ListTabsResponse = browser.ListTabsResponse
 )
 
 // Connect wraps an established transport with a high-level Browser handle.

@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"sync"
 
-	"nhooyr.io/websocket"
+	"github.com/coder/websocket"
 )
 
 // WebSocketTransport carries messages over a single WebSocket connection.
@@ -21,6 +21,7 @@ func DialWebSocket(ctx context.Context, endpoint *url.URL) (*WebSocketTransport,
 	if err != nil {
 		return nil, err
 	}
+
 	return &WebSocketTransport{conn: conn}, nil
 }
 
@@ -28,6 +29,7 @@ func DialWebSocket(ctx context.Context, endpoint *url.URL) (*WebSocketTransport,
 func (t *WebSocketTransport) Send(ctx context.Context, data []byte) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
+
 	return t.conn.Write(ctx, websocket.MessageText, data)
 }
 
@@ -37,6 +39,7 @@ func (t *WebSocketTransport) Receive(ctx context.Context) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return data, nil
 }
 

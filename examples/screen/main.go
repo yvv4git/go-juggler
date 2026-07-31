@@ -23,6 +23,7 @@ func main() {
 	session := flag.String("session", "screen-demo", "session key")
 	out := flag.String("out", "screenshot.png", "output PNG file")
 	fullPage := flag.Bool("full", false, "capture full page (not just viewport)")
+
 	flag.Parse()
 
 	if flag.NArg() > 0 {
@@ -36,16 +37,18 @@ func main() {
 	if err != nil {
 		log.Fatalf("OpenTab: %v", err)
 	}
+
 	fmt.Printf("opened %s\n", tab.URL)
-	defer c.CloseTab(ctx, tab.TabID, *session)
+	defer func() { _ = c.CloseTab(ctx, tab.TabID, *session) }()
 
 	png, err := c.Screenshot(ctx, tab.TabID, *session, *fullPage)
 	if err != nil {
 		log.Fatalf("Screenshot: %v", err)
 	}
 
-	if err := os.WriteFile(*out, png, 0644); err != nil {
+	if err := os.WriteFile(*out, png, 0o644); err != nil {
 		log.Fatalf("write file: %v", err)
 	}
+
 	fmt.Printf("saved %s (%d bytes)\n", *out, len(png))
 }

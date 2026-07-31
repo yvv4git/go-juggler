@@ -23,6 +23,7 @@ func main() {
 	url := flag.String("url", "http://www.wikipedia.org", "page to load")
 	session := flag.String("session", "requests-demo", "session key")
 	wait := flag.Duration("wait", 15*time.Second, "how long to poll for late requests")
+
 	flag.Parse()
 
 	if flag.NArg() > 0 {
@@ -36,21 +37,25 @@ func main() {
 	if err != nil {
 		log.Fatalf("OpenTab: %v", err)
 	}
+
 	fmt.Printf("opened %s\n\n", tab.URL)
-	defer c.CloseTab(ctx, tab.TabID, *session)
+	defer func() { _ = c.CloseTab(ctx, tab.TabID, *session) }()
 
 	fmt.Printf("polling for %s ...\n\n", *wait)
+
 	entries, err := c.PollNetworkRequests(ctx, tab.TabID, *session, *wait, 1*time.Second)
 	if err != nil {
 		log.Fatalf("PollNetworkRequests: %v", err)
 	}
 
 	fmt.Printf("total requests: %d\n\n", len(entries))
+
 	for i, e := range entries {
 		name := e.Name
 		if len(name) > 100 {
 			name = name[:97] + "..."
 		}
+
 		fmt.Printf("%2d. [%-12s] %s\n", i+1, strings.ToUpper(e.Type), name)
 	}
 }

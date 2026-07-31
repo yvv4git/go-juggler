@@ -10,6 +10,7 @@ func TestRequestRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	if !req.IsRequest() {
 		t.Fatalf("expected request, got %+v", req)
 	}
@@ -23,13 +24,16 @@ func TestRequestRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	if got.ID != 1 || got.Method != BrowserNewPage {
 		t.Fatalf("unexpected message: %+v", got)
 	}
+
 	var params map[string]string
 	if err := json.Unmarshal(got.Params, &params); err != nil {
 		t.Fatalf("decode params: %v", err)
 	}
+
 	if params["url"] != "https://example.com" {
 		t.Fatalf("unexpected params: %v", params)
 	}
@@ -40,13 +44,16 @@ func TestEventRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	msg, err := Decode(data)
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	if !msg.IsEvent() {
 		t.Fatalf("expected event, got %+v", msg)
 	}
+
 	if msg.IsRequest() || msg.IsResponse() {
 		t.Fatalf("event misclassified: %+v", msg)
 	}
@@ -57,10 +64,12 @@ func TestResponseClassification(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	msg, err := Decode(data)
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	if !msg.IsResponse() {
 		t.Fatalf("expected response, got %+v", msg)
 	}
@@ -69,6 +78,7 @@ func TestResponseClassification(t *testing.T) {
 	if err := json.Unmarshal(msg.Result, &result); err != nil {
 		t.Fatalf("decode result: %v", err)
 	}
+
 	if !result.Ok {
 		t.Fatalf("unexpected result: %+v", result)
 	}

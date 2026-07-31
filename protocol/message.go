@@ -44,6 +44,7 @@ func NewRequest(id int64, method string, params any) (*Message, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &Message{ID: id, Method: method, Params: raw}, nil
 }
 
@@ -53,6 +54,7 @@ func Decode(data []byte) (*Message, error) {
 	if err := json.Unmarshal(data, &m); err != nil {
 		return nil, err
 	}
+
 	return &m, nil
 }
 

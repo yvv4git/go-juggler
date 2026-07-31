@@ -20,6 +20,7 @@ import (
 
 func main() {
 	addr := flag.String("addr", "http://localhost:9377", "camofox-browser endpoint")
+
 	flag.Parse()
 
 	ctx := context.Background()
@@ -31,10 +32,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("OpenTab: %v", err)
 	}
+
 	fmt.Printf("1. OpenTab    -> %s (%s)\n", tab.TabID, tab.URL)
 	defer func() {
 		_ = c.CloseTab(ctx, tab.TabID, session)
 		_ = c.CloseSession(ctx, session)
+
 		fmt.Println("\n15. CloseTab    ")
 		fmt.Println("16. CloseSession")
 	}()
@@ -44,6 +47,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Snapshot: %v", err)
 	}
+
 	fmt.Printf("2. Snapshot   -> %d chars, %d refs\n", len(snap.Snapshot), snap.RefsCount)
 
 	// 3. Links
@@ -51,7 +55,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("Links: %v", err)
 	}
+
 	fmt.Printf("3. Links      -> %d total, first 5:\n", links.Pagination.Total)
+
 	for _, l := range links.Links {
 		fmt.Printf("   - %s (%s)\n", l.Text, l.URL)
 	}
@@ -61,6 +67,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Stats: %v", err)
 	}
+
 	fmt.Printf("4. Stats      -> url=%s visited=%d refs=%d\n", stats.URL, len(stats.VisitedURLs), stats.RefsCount)
 
 	// 5. Evaluate - inject a clickable button, then Click it
@@ -70,12 +77,14 @@ func main() {
 	} else {
 		fmt.Println("5. Evaluate   -> injected button")
 	}
+
 	snapBtn, err := c.Snapshot(ctx, tab.TabID, session)
 	if err != nil {
 		fmt.Printf("5. Snapshot   -> %v\n", err)
 	} else {
 		fmt.Printf("5. Snapshot   -> %d refs\n", snapBtn.RefsCount)
 	}
+
 	if err := c.Click(ctx, tab.TabID, session, "e1", ""); err != nil {
 		fmt.Printf("5. Click      -> skipped: %v\n", err)
 	} else {
@@ -86,6 +95,7 @@ func main() {
 	if err := c.Navigate(ctx, tab.TabID, session, "http://example.org"); err != nil {
 		log.Fatalf("Navigate: %v", err)
 	}
+
 	fmt.Println("6. Navigate   -> example.org")
 
 	// 7. Back
@@ -115,6 +125,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Snapshot: %v", err)
 	}
+
 	fmt.Printf("10. Snapshot  -> %d chars, %d refs\n", len(snap2.Snapshot), snap2.RefsCount)
 
 	// 11. Type
@@ -130,6 +141,7 @@ func main() {
 	} else {
 		fmt.Println("12. Press     -> Enter")
 	}
+
 	time.Sleep(1 * time.Second)
 
 	// 13. Scroll
@@ -152,7 +164,7 @@ func main() {
 		fmt.Printf("15. Screenshot -> %v\n", err)
 	} else {
 		path := "screenshot.png"
-		_ = os.WriteFile(path, png, 0644)
+		_ = os.WriteFile(path, png, 0o644)
 		fmt.Printf("15. Screenshot -> saved %s (%d bytes)\n", path, len(png))
 	}
 }
