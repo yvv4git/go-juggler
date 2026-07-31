@@ -1,3 +1,4 @@
+// Package main demonstrates injecting JavaScript into a page via the Juggler client.
 package main
 
 import (

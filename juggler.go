@@ -21,20 +21,37 @@ import (
 )
 
 // Browser is the re-exported browser.Browser type.
-// Tab, Client and related types are also re-exported for convenient
-// single-package imports.
 type (
 	Browser = browser.Browser
-	Tab     = browser.Tab
-	Option  = browser.Option
-	Client  = browser.Client
 
-	HealthResponse   = browser.HealthResponse
-	TabResponse      = browser.TabResponse
+	// Tab is the re-exported browser.Tab type.
+	Tab = browser.Tab
+
+	// Option is the re-exported browser.Option type.
+	Option = browser.Option
+
+	// Client is the re-exported browser.Client type.
+	Client = browser.Client
+
+	// HealthResponse is the re-exported browser.HealthResponse type.
+	HealthResponse = browser.HealthResponse
+
+	// TabResponse is the re-exported browser.TabResponse type.
+	TabResponse = browser.TabResponse
+
+	// SnapshotResponse is the re-exported browser.SnapshotResponse type.
 	SnapshotResponse = browser.SnapshotResponse
+
+	// EvaluateResponse is the re-exported browser.EvaluateResponse type.
 	EvaluateResponse = browser.EvaluateResponse
-	ResourceEntry    = browser.ResourceEntry
-	TabInfo          = browser.TabInfo
+
+	// ResourceEntry is the re-exported browser.ResourceEntry type.
+	ResourceEntry = browser.ResourceEntry
+
+	// TabInfo is the re-exported browser.TabInfo type.
+	TabInfo = browser.TabInfo
+
+	// ListTabsResponse is the re-exported browser.ListTabsResponse type.
 	ListTabsResponse = browser.ListTabsResponse
 )
 

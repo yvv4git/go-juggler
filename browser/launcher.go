@@ -40,7 +40,7 @@ func defaultConfig() config {
 // TODO: spawn cfg.execPath with the inherited pipe fds
 // (transport.ReadFD/transport.WriteFD) or a WebSocket endpoint, then
 // Connect to the resulting transport.
-func Launch(ctx context.Context, opts ...Option) (*Browser, error) {
+func Launch(_ context.Context, opts ...Option) (*Browser, error) {
 	cfg := defaultConfig()
 	for _, o := range opts {
 		o(&cfg)

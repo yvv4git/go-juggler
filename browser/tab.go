@@ -16,7 +16,7 @@ func (t *Tab) ID() string { return t.id }
 // Navigate navigates the tab to the given URL.
 //
 // TODO: send the Page.navigate request and wait for its response.
-func (t *Tab) Navigate(_ context.Context, url string) error {
+func (t *Tab) Navigate(_ context.Context, _ string) error {
 	return errors.New("browser: not implemented yet")
 }
 

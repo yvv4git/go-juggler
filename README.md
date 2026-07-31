@@ -1,5 +1,7 @@
 # go-juggler
 
+![go-juggler demo](./assets/lib_camoufox.png)
+
 Go client for the [Juggler](https://deepwiki.com/daijro/camoufox/6.1-juggler-system)
 automation protocol. Automates Juggler-enabled browsers such as
 Firefox/Camoufox from Go.
@@ -24,12 +26,12 @@ import (
 
 func main() {
     ctx := context.Background()
+    c := juggler.NewClient("http://localhost:9377")
 
-    b, err := juggler.Launch(ctx, juggler.WithExecPath("/path/to/firefox"))
-    if err != nil {
-        log.Fatal(err)
-    }
-    defer b.Close(ctx)
+    tab, _ := c.OpenTab(ctx, "demo", "http://example.com")
+    snap, _ := c.Snapshot(ctx, tab.TabID, "demo")
+    c.Click(ctx, tab.TabID, "demo", "e1", "")
+    c.CloseTab(ctx, tab.TabID, "demo")
 }
 ```
 
@@ -85,3 +87,13 @@ moves raw frames and protocol gives them meaning.
 ## License
 
 MIT, see [LICENSE](LICENSE). See [NOTICE](NOTICE) for attribution.
+
+<p align="center">
+  <a href="https://tonviewer.com/UQCcbp-mue-7HTjDNQ_ZrKtg-tUxIFu817APmItjXasiBGP3">
+    <img src="https://img.shields.io/badge/Buy%20me%20a%20TON-0098EA?style=for-the-badge">
+  </a>
+</p>
+
+<p align="center">
+  If this tool helps you, consider buying me a coffee! ☕
+</p>
