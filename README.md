@@ -54,6 +54,7 @@ func main() {
 | `NetworkRequests`     | Get all loaded resources (navigation + subresources)         |
 | `PollNetworkRequests` | Poll for resources over time with deduplication              |
 | `Stats`               | Get tab state (URL, visited URLs, refs)                      |
+| `ListTabs`            | List all tabs in a session (URL, title)                      |
 | `CloseTab`            | Close a tab                                                  |
 | `CloseSession`        | Destroy an entire session and all its tabs                   |
 

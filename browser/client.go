@@ -8,6 +8,7 @@ import (
 	"io"
 	"maps"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -308,6 +309,30 @@ func (c *Client) Evaluate(ctx context.Context, tabID, sessionKey, expression str
 		return nil, fmt.Errorf("decode: %w (body: %s)", err, string(raw))
 	}
 	return &out, nil
+}
+
+// TabInfo describes a single tab in a session.
+type TabInfo struct {
+	TargetID   string `json:"targetId"`
+	TabID      string `json:"tabId"`
+	URL        string `json:"url"`
+	Title      string `json:"title"`
+	ListItemID string `json:"listItemId"`
+}
+
+// ListTabsResponse holds all tabs for a session.
+type ListTabsResponse struct {
+	Running bool      `json:"running"`
+	Tabs    []TabInfo `json:"tabs"`
+}
+
+// ListTabs returns all open tabs in the given session.
+func (c *Client) ListTabs(ctx context.Context, sessionKey string) (*ListTabsResponse, error) {
+	var r ListTabsResponse
+	if err := c.get(ctx, "/tabs?userId="+url.QueryEscape(sessionKey), &r); err != nil {
+		return nil, err
+	}
+	return &r, nil
 }
 
 func (c *Client) Stats(ctx context.Context, tabID, sessionKey string) (*TabStats, error) {

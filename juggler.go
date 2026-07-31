@@ -33,6 +33,8 @@ type (
 	SnapshotResponse  = browser.SnapshotResponse
 	EvaluateResponse  = browser.EvaluateResponse
 	ResourceEntry     = browser.ResourceEntry
+	TabInfo           = browser.TabInfo
+	ListTabsResponse  = browser.ListTabsResponse
 )
 
 // Connect wraps an established transport with a high-level Browser handle.
