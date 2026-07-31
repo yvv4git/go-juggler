@@ -36,3 +36,12 @@ func Connect(ctx context.Context, tr transport.Transport) (*Browser, error) {
 func Launch(ctx context.Context, opts ...Option) (*Browser, error) {
 	return browser.Launch(ctx, opts...)
 }
+
+// WithExecPath sets the browser executable to launch.
+var WithExecPath = browser.WithExecPath
+
+// WithTimeout sets the launch timeout.
+var WithTimeout = browser.WithTimeout
+
+// WithHeadless toggles headless mode.
+var WithHeadless = browser.WithHeadless
