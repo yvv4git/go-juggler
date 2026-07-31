@@ -5,23 +5,24 @@ camofox-browser instance.
 
 ## What it demonstrates
 
-| Step   | Method         | What it does                                        |
-| ------ | -------------- | --------------------------------------------------- |
-| 1      | `OpenTab`      | Opens a new tab in a session                        |
-| 2      | `Navigate`     | Loads a URL (wikipedia.org)                         |
-| 3      | `Snapshot`     | Fetches the ARIA accessibility tree with ref IDs    |
-| 4      | `Links`        | Lists all links on the page with pagination         |
-| 5      | `Stats`        | Returns tab state: URL, visited URLs, ref count     |
-| 6      | `Type`         | Fills an input field with text                      |
-| 7      | `Press`        | Presses a keyboard key (Enter, Tab, Escape, ...)    |
-| 8      | `Scroll`       | Scrolls the page by a pixel amount                  |
-| 9      | `Back`         | Navigates back in browser history                   |
-| 10     | `Forward`      | Navigates forward in browser history                |
-| 11     | `Refresh`      | Reloads the current page                            |
-| 12     | `Click`        | Clicks an element by its ARIA ref ID or CSS selector|
-| 13     | `Screenshot`   | Captures a PNG screenshot of the page               |
-| 14     | `CloseTab`     | Closes the tab                                      |
-| 15     | `CloseSession` | Destroys the session and all its tabs               |
+| Step | Method       | What it does                                        |
+|------|--------------|-----------------------------------------------------|
+| 1    | `OpenTab`    | Opens a new tab in a session                        |
+| 2    | `Snapshot`   | Fetches the ARIA accessibility tree with ref IDs    |
+| 3    | `Links`      | Lists all links on the page with pagination         |
+| 4    | `Stats`      | Returns tab state: URL, visited URLs, ref count     |
+| 5    | `Evaluate`   | Injects a button via JavaScript                     |
+| 5    | `Click`      | Clicks the injected button by ref                   |
+| 6    | `Navigate`   | Loads a URL (example.org)                           |
+| 7    | `Back`       | Navigates back in browser history                   |
+| 8    | `Forward`    | Navigates forward in browser history                |
+| 9    | `Evaluate`   | Injects a form with input field                     |
+| 10   | `Snapshot`   | Fetches updated ARIA tree with new refs             |
+| 11   | `Type`       | Fills an input field with text                      |
+| 12   | `Press`      | Presses Enter to submit the form                    |
+| 13   | `Scroll`     | Scrolls the page by a pixel amount                  |
+| 14   | `Refresh`    | Reloads the current page                            |
+| 15   | `Screenshot` | Captures a PNG screenshot of the page               |
 
 ## Prerequisites
 

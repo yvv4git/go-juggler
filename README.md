@@ -33,6 +33,30 @@ func main() {
 }
 ```
 
+## Capabilities
+
+| Method                | Description                                                  |
+|-----------------------|--------------------------------------------------------------|
+| `Health`              | Check browser status (engine, connection, memory)            |
+| `OpenTab`             | Open a new tab and navigate to a URL                         |
+| `Navigate`            | Load a URL in an existing tab                                |
+| `Snapshot`            | Get the ARIA tree of the page (element refs)                 |
+| `Click`               | Click an element by ref or CSS selector                      |
+| `Type`                | Fill an input field by ref or selector                       |
+| `Press`               | Press a keyboard key (Enter, Tab, Escape, etc.)              |
+| `Scroll`              | Scroll the page up/down by N pixels                          |
+| `Back`                | Navigate back in history                                     |
+| `Forward`             | Navigate forward in history                                  |
+| `Refresh`             | Reload the current page                                      |
+| `Links`               | List all links on the page with pagination                   |
+| `Screenshot`          | Take a PNG screenshot (page or viewport)                     |
+| `Evaluate`            | Run arbitrary JavaScript in the page context                 |
+| `NetworkRequests`     | Get all loaded resources (navigation + subresources)         |
+| `PollNetworkRequests` | Poll for resources over time with deduplication              |
+| `Stats`               | Get tab state (URL, visited URLs, refs)                      |
+| `CloseTab`            | Close a tab                                                  |
+| `CloseSession`        | Destroy an entire session and all its tabs                   |
+
 ## Layout
 
 ```text
@@ -42,7 +66,10 @@ go-juggler/
 ├── protocol/           # Juggler message types, JSON encoding/decoding
 ├── browser/            # high-level browser and tab control
 └── examples/           # runnable example programs
-    └── basic/          # go run ./examples/basic -exec /path/to/firefox
+    ├── basic/          # life-cycle demo
+    ├── tab/            # all 16 tab operations
+    ├── inject/         # JS injection via Evaluate
+    └── requests/       # intercept companion network requests
 ```
 
 Dependencies flow one way, from high level to low level:
