@@ -20,11 +20,17 @@ import (
 	"github.com/yvv4git/go-juggler/transport"
 )
 
-// Browser and Tab are re-exported for convenient single-package imports.
+// Browser, Tab, Client and related types are re-exported for convenient
+// single-package imports.
 type (
 	Browser = browser.Browser
 	Tab     = browser.Tab
 	Option  = browser.Option
+	Client  = browser.Client
+
+	HealthResponse  = browser.HealthResponse
+	TabResponse     = browser.TabResponse
+	SnapshotResponse = browser.SnapshotResponse
 )
 
 // Connect wraps an established transport with a high-level Browser handle.
@@ -35,6 +41,11 @@ func Connect(ctx context.Context, tr transport.Transport) (*Browser, error) {
 // Launch starts a new Juggler-enabled browser and returns a handle to it.
 func Launch(ctx context.Context, opts ...Option) (*Browser, error) {
 	return browser.Launch(ctx, opts...)
+}
+
+// NewClient creates a new HTTP client for the given camofox-browser address.
+func NewClient(addr string, opts ...browser.ClientOption) *Client {
+	return browser.NewClient(addr, opts...)
 }
 
 // WithExecPath sets the browser executable to launch.
