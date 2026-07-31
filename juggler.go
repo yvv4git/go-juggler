@@ -28,9 +28,10 @@ type (
 	Option  = browser.Option
 	Client  = browser.Client
 
-	HealthResponse  = browser.HealthResponse
-	TabResponse     = browser.TabResponse
-	SnapshotResponse = browser.SnapshotResponse
+	HealthResponse    = browser.HealthResponse
+	TabResponse       = browser.TabResponse
+	SnapshotResponse  = browser.SnapshotResponse
+	EvaluateResponse  = browser.EvaluateResponse
 )
 
 // Connect wraps an established transport with a high-level Browser handle.

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"time"
 )
@@ -215,6 +216,44 @@ type TabStats struct {
 }
 
 // Stats returns the tab stats.
+type EvaluateResponse struct {
+	OK     bool        `json:"ok"`
+	Result interface{} `json:"result"`
+}
+
+func (c *Client) Evaluate(ctx context.Context, tabID, sessionKey, expression string) (*EvaluateResponse, error) {
+	body := map[string]string{
+		"userId":     sessionKey,
+		"expression": expression,
+	}
+	data, err := json.Marshal(body)
+	if err != nil {
+		return nil, fmt.Errorf("marshal: %w", err)
+	}
+	req, err := http.NewRequestWithContext(ctx, "POST", c.baseURL+"/tabs/"+tabID+"/evaluate", bytes.NewReader(data))
+	if err != nil {
+		return nil, fmt.Errorf("new request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := c.hc.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("do: %w", err)
+	}
+	defer resp.Body.Close()
+	raw, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode == 404 {
+		return nil, fmt.Errorf("evaluate endpoint not found — camofox-browser must be >= 1.4.0 (got %s, status 404)", resp.Status)
+	}
+	if resp.StatusCode >= 400 {
+		return nil, fmt.Errorf("status %d: %s", resp.StatusCode, string(raw))
+	}
+	var out EvaluateResponse
+	if err := json.Unmarshal(raw, &out); err != nil {
+		return nil, fmt.Errorf("decode: %w (body: %s)", err, string(raw))
+	}
+	return &out, nil
+}
+
 func (c *Client) Stats(ctx context.Context, tabID, sessionKey string) (*TabStats, error) {
 	var r TabStats
 	if err := c.get(ctx, fmt.Sprintf("/tabs/%s/stats?userId=%s", tabID, sessionKey), &r); err != nil {
@@ -227,13 +266,11 @@ func (c *Client) Stats(ctx context.Context, tabID, sessionKey string) (*TabStats
 
 func (c *Client) tabAction(ctx context.Context, tabID, sessionKey, kind string, params map[string]any) error {
 	payload := map[string]any{
-		"kind":    kind,
-		"userId":  sessionKey,
+		"kind":     kind,
+		"userId":   sessionKey,
 		"targetId": tabID,
 	}
-	for k, v := range params {
-		payload[k] = v
-	}
+	maps.Copy(payload, params)
 	return c.post(ctx, "/act", payload, nil)
 }
 
