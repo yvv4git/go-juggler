@@ -82,6 +82,7 @@ moves raw frames and protocol gives them meaning.
 
 ## Links
 
+- [go-juggler-mcp](https://github.com/yvv4git/go-juggler-mcp) — MCP server for go-juggler, lets you control the browser via AI assistants (Claude, Cursor, etc.)
 - [Juggler Protocol Architecture (daijro/camoufox)](https://deepwiki.com/daijro/camoufox/6.1-juggler-system)
 
 ## License
