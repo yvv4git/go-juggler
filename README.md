@@ -35,30 +35,61 @@ func main() {
 }
 ```
 
+### With Custom Headers
+
+```go
+package main
+
+import (
+    "context"
+    "log"
+
+    "github.com/yvv4git/go-juggler"
+)
+
+func main() {
+    ctx := context.Background()
+    c := juggler.NewClient("http://localhost:9377")
+
+    // Open tab with custom HTTP headers
+    headers := []juggler.Header{
+        {Name: "Authorization", Value: "Bearer token123"},
+        {Name: "X-Custom-Header", Value: "value"},
+    }
+    tab, _ := c.OpenTab(ctx, "demo", "https://example.com", headers...)
+
+    // Navigate with different headers
+    navigateHeaders := []juggler.Header{
+        {Name: "Authorization", Value: "Bearer token456"},
+    }
+    c.Navigate(ctx, tab.TabID, "demo", "https://example.com/other", navigateHeaders...)
+}
+```
+
 ## Capabilities
 
-| Method                | Description                                                  |
-|-----------------------|--------------------------------------------------------------|
-| `Health`              | Check browser status (engine, connection, memory)            |
-| `OpenTab`             | Open a new tab and navigate to a URL                         |
-| `Navigate`            | Load a URL in an existing tab                                |
-| `Snapshot`            | Get the ARIA tree of the page (element refs)                 |
-| `Click`               | Click an element by ref or CSS selector                      |
-| `Type`                | Fill an input field by ref or selector                       |
-| `Press`               | Press a keyboard key (Enter, Tab, Escape, etc.)              |
-| `Scroll`              | Scroll the page up/down by N pixels                          |
-| `Back`                | Navigate back in history                                     |
-| `Forward`             | Navigate forward in history                                  |
-| `Refresh`             | Reload the current page                                      |
-| `Links`               | List all links on the page with pagination                   |
-| `Screenshot`          | Take a PNG screenshot (page or viewport)                     |
-| `Evaluate`            | Run arbitrary JavaScript in the page context                 |
-| `NetworkRequests`     | Get all loaded resources (navigation + subresources)         |
-| `PollNetworkRequests` | Poll for resources over time with deduplication              |
-| `Stats`               | Get tab state (URL, visited URLs, refs)                      |
-| `ListTabs`            | List all tabs in a session (URL, title)                      |
-| `CloseTab`            | Close a tab                                                  |
-| `CloseSession`        | Destroy an entire session and all its tabs                   |
+| Method                | Description                                                          |
+|-----------------------|----------------------------------------------------------------------|
+| `Health`              | Check browser status (engine, connection, memory)                    |
+| `OpenTab`             | Open a new tab and navigate to a URL (supports custom headers)       |
+| `Navigate`            | Load a URL in an existing tab (supports custom headers)              |
+| `Snapshot`            | Get the ARIA tree of the page (element refs)                         |
+| `Click`               | Click an element by ref or CSS selector                              |
+| `Type`                | Fill an input field by ref or selector                               |
+| `Press`               | Press a keyboard key (Enter, Tab, Escape, etc.)                      |
+| `Scroll`              | Scroll the page up/down by N pixels                                  |
+| `Back`                | Navigate back in history                                             |
+| `Forward`             | Navigate forward in history                                          |
+| `Refresh`             | Reload the current page                                              |
+| `Links`               | List all links on the page with pagination                           |
+| `Screenshot`          | Take a PNG screenshot (page or viewport)                             |
+| `Evaluate`            | Run arbitrary JavaScript in the page context                         |
+| `NetworkRequests`     | Get all loaded resources (navigation + subresources)                 |
+| `PollNetworkRequests` | Poll for resources over time with deduplication                      |
+| `Stats`               | Get tab state (URL, visited URLs, refs)                              |
+| `ListTabs`            | List all tabs in a session (URL, title)                              |
+| `CloseTab`            | Close a tab                                                          |
+| `CloseSession`        | Destroy an entire session and all its tabs                           |
 
 ## Layout
 
@@ -72,7 +103,8 @@ go-juggler/
     ├── basic/          # life-cycle demo
     ├── tab/            # all 16 tab operations
     ├── inject/         # JS injection via Evaluate
-    └── requests/       # intercept companion network requests
+    ├── requests/       # intercept companion network requests
+    └── headers/        # custom HTTP headers example
 ```
 
 Dependencies flow one way, from high level to low level:

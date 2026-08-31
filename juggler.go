@@ -53,6 +53,9 @@ type (
 
 	// ListTabsResponse is the re-exported browser.ListTabsResponse type.
 	ListTabsResponse = browser.ListTabsResponse
+
+	// Header is the re-exported browser.Header type.
+	Header = browser.Header
 )
 
 // Connect wraps an established transport with a high-level Browser handle.

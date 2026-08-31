@@ -42,6 +42,12 @@ type TabResponse struct {
 	Title    string `json:"title"`
 }
 
+// Header represents an HTTP header name-value pair.
+type Header struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
 // SnapshotResponse is returned by the snapshot endpoint.
 type SnapshotResponse struct {
 	URL       string `json:"url"`
@@ -75,13 +81,19 @@ func (c *Client) Health(ctx context.Context) (*HealthResponse, error) {
 }
 
 // OpenTab opens a new tab and navigates to the given URL.
-func (c *Client) OpenTab(ctx context.Context, sessionKey, url string) (*TabResponse, error) {
-	var r TabResponse
-	if err := c.post(ctx, "/tabs/open", map[string]any{
+// Optional headers are sent with the initial navigation request.
+func (c *Client) OpenTab(ctx context.Context, sessionKey, url string, headers ...Header) (*TabResponse, error) {
+	payload := map[string]any{
 		"userId":     sessionKey,
 		"sessionKey": sessionKey,
 		"url":        url,
-	}, &r); err != nil {
+	}
+	if len(headers) > 0 {
+		payload["headers"] = headers
+	}
+
+	var r TabResponse
+	if err := c.post(ctx, "/tabs/open", payload, &r); err != nil {
 		return nil, err
 	}
 
@@ -89,11 +101,17 @@ func (c *Client) OpenTab(ctx context.Context, sessionKey, url string) (*TabRespo
 }
 
 // Navigate navigates an existing tab to the given URL.
-func (c *Client) Navigate(ctx context.Context, tabID, sessionKey, url string) error {
-	return c.post(ctx, "/tabs/"+tabID+"/navigate", map[string]any{
+// Optional headers are sent with the navigation request.
+func (c *Client) Navigate(ctx context.Context, tabID, sessionKey, url string, headers ...Header) error {
+	payload := map[string]any{
 		"userId": sessionKey,
 		"url":    url,
-	}, nil)
+	}
+	if len(headers) > 0 {
+		payload["headers"] = headers
+	}
+
+	return c.post(ctx, "/tabs/"+tabID+"/navigate", payload, nil)
 }
 
 // Snapshot returns the ARIA snapshot of the tab.
